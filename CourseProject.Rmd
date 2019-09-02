@@ -1,0 +1,138 @@
+---
+title: "Prediction Assignment"
+author: "Allan Kavuma"
+date: "27 August 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal was to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to predict the manner in which they did the exercise.
+
+The report described how the model was built, how cross validation was used, the expected out of sample error, and reasons for the choices made. The prediction model was used to predict 20 different test cases.
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E)
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg).
+
+
+### Cross Validation
+The training set was further divided into another training set(70%), myTraining, and testing set(30%), myTesting. 
+The model was trained on this new training set, trainingCl
+
+### Load Data
+```{r LoadData, warning=FALSE, comment=FALSE, message=FALSE,}
+## Load libraries for running the analysis and tests
+library(caret) ## For Machine Learning modules
+library(rpart) ## For decision trees
+library(randomForest) ## For random forest predictions
+library(rattle) ## For plotting decision tree
+
+## Read the training set
+training <- read.csv("pml-training.csv", na.strings = c("NA", "#DIV/0!", ""))
+## Read the testing set
+testing <- read.csv("pml-testing.csv", na.strings = c("NA", "#DIV/0!", ""))
+## missing data, empty strings, #DIV/0! is coded at NA
+
+```
+
+The Data was cleaned to make it fit for running it with our models as shown below.
+```{r Cleaning, warning=FALSE, echo=FALSE}
+## Removing columns with missing data from training and testing set
+trainingCleaned <- training[, colSums(is.na(training)) == 0]
+testingCleaned <- testing[, colSums(is.na(testing)) == 0]
+
+## Removing columns that are not important for our predition models
+## Coloumns 1 to 7
+trainingCleaned <- trainingCleaned[,-c(1,2,3,4,5,6,7)]
+testingCleaned <- testingCleaned[,-c(1,2,3,4,5,6,7)]
+
+## Removing the near zero variance variables from our training and testing set
+nzvData <- nearZeroVar(trainingCleaned, saveMetrics = TRUE)
+non_nzvColumnNames <- names(trainingCleaned)[!nzvData$nzv]
+trainingCleaned <- trainingCleaned[,non_nzvColumnNames]
+testingCleaned <- trainingCleaned[,non_nzvColumnNames]
+
+```
+
+Cross validation of further dividing cleaned training set into two; mytraining set (70%) and mytesting set (30%) 
+```{r crossvalidation}
+## Setting the seed to allow reproducibility of results
+set.seed(1000)
+
+## Create index for the partitioning
+indexTrain <- createDataPartition(y=training$classe, p = 0.70, list = FALSE)
+myTraining <- trainingCleaned[indexTrain,]
+myTesting <- testingCleaned[-indexTrain,]
+
+## Plot of classe variable to better understand it
+plot(myTraining$classe, xlab = "classe", ylab = "frequency", main = "classe distribution")
+## From plot, there is a sizeable number of observations on the correct exercise, A and other wrong exercises, B, C, D, E in myTraining set.
+```
+
+### Prediction with Decision Trees method
+```{r DecisionTreeprediction, warning=FALSE}
+## Create model that uses all other variables in myTraining to predict classe using Decision Trees method
+modelDT <- rpart(classe ~ ., data = myTraining, method = "class")
+
+## Viewing the Decision Tree
+fancyRpartPlot(modelDT)
+
+## Running model to predict classe in myTesting set when classe is removed. NB: results classified as type "class"
+predictedDT <- predict(object = modelDT, newdata = myTesting[,-53], type = "class")
+
+## Testing the results of my prediction with Decision trees with myTesting set
+confusionMatrix(predictedDT, myTesting$classe)
+
+
+```
+Accuracy is 76.53% when modelDT is run on myTesting set.
+
+
+### Prediction with Random Forest method
+```{r RandomForestPrediction}
+## Create model that uses all other variables in myTraining to predict classe using Random Forest
+modelRF <- randomForest(classe ~., data = myTraining, method = "class")
+
+## Looking at modelRF details
+modelRF
+
+# Running model to predict classe in myTesting set when classe is removed. NB: results classified as type "class"
+predictedRF <- predict(object = modelRF, newdata = myTesting[,-53], type = "class")
+
+## Testing the results of my prediction with Decision trees with myTesting set
+confusionMatrix(predictedRF, myTesting$classe)
+
+```
+Accuracy is 99.44% when modelRF is run on myTesting set.
+
+
+### Model Selection Decision
+Decision Trees model, modelDT, has accuracy 0.7653(95% Confidence Interval: (0.7543, 0.7761)).  
+Random Forest model, modelRF, has accuracy 0.9944(95% Confidence Interval: (0.9921, 0.9961)).  
+The Expected Out of sample error is 1 - Accuracy, for predictions on the cross validation data sets. (Since none of the myTesting data set observations were not contained in the myTraining data set used to train the models)  
+Decision Trees model, modelDT, expected out-of-sample error is 1 - 0.7653 = 0.2347 ie (23.47%).  
+Random Forest model, modelRF, expected out-of-sample error is 1 - .9944 = 0.0056 ie (0.56%).  
+The Random Forest model, modelRF, is a better model and hence considered
+
+
+### Prediction on initially provided testing data set
+```{r PredictingTestingSet}
+predictedTesting <- predict(object = modelRF, newdata = testing, type = "class")
+
+## Results from testing prediction
+predictedTesting
+```
+
+Below are the predicted results of the 20 activities in the testing data set ```r predictedTesting```
+
+
+### References
+*Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. *
