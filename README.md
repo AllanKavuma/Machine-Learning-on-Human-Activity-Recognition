@@ -1,37 +1,10 @@
-## Welcome to GitHub Pages
+## Executive Summary
+One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal was to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to predict the manner in which they did the exercise.
+
+The report describes how the model was built, how cross validation was used, the expected out of sample error, and reasons for the choices made. The prediction model was used to predict 20 different test cases.
+
+# Welcome to GitHub Pages
 
 You can use the [editor on GitHub](https://github.com/AllanKavuma/Machine-Learning-on-Human-Activity-Recognition/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/AllanKavuma/Machine-Learning-on-Human-Activity-Recognition/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+The report can also be viewed on [report link](https://allankavuma.github.io/Machine-Learning-on-Human-Activity-Recognition/CourseProject)
